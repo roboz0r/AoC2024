@@ -18,7 +18,7 @@ let part1 (sample: string) =
     )
     |> Array.unzip
     |> fun (xs, ys) -> (Array.sort xs, Array.sort ys)
-    |> fun (xs, ys) -> (xs, ys) ||> Array.map2 (fun x y -> abs(y - x))
+    ||> Array.map2 (fun x y -> abs(y - x))
     |> Array.sum
 
 

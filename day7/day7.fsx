@@ -106,12 +106,31 @@ let eval2 (values: int64 array) (ops: int) =
     )
     |> fst
 
+let eval2_earlyExit (target: int64) (values: int64 array) (ops: int) =
+    let rec f sum i =
+        if i = values.Length - 1 then sum
+        else
+            let x = values[i + 1]
+            let sum = 
+                match enum<Op>((ops / (pown 3 i)) % 3) with
+                | Op.Add ->
+                    sum + x
+                | Op.Mul ->
+                    sum * x
+                | Op.Concat ->
+                    concatBase10 sum x
+                | _ -> failwith "Unreachable"
+            if sum > target then -1L
+            else f sum (i + 1)
+
+    f values[0] 0
+
 
 let tryFindSolution2 (eq: Equation) =
     let maxI = pown 3 (eq.Values.Length - 1)
     let rec f i =
         if i = maxI then None
-        elif eq.Result = eval2 eq.Values i then
+        elif eq.Result = eval2_earlyExit eq.Result eq.Values i then
             Some i
         else
             f (i + 1)

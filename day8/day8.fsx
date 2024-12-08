@@ -71,7 +71,7 @@ let rec distinctPairs xs =
         match xs with
         | head :: tail ->
             for t in tail do
-                [| head; t |]
+                struct(head, t)
             yield! distinctPairs tail
         | [] -> ()
     }
@@ -122,11 +122,7 @@ let part1 (input: string) =
         |> Map.map (fun k v ->
             v 
             |> distinctPairs
-            |> Seq.collect
-                (function
-                | [| p1; p2 |] ->
-                    antiNodes map p1 p2
-                | _ -> failwith "Unreachable")
+            |> Seq.collect (fun struct(p1, p2) -> antiNodes map p1 p2)
         )
         |> Seq.collect (fun (KeyValue(k, v)) -> v)
         |> Set
@@ -156,11 +152,7 @@ let part2 (input: string) =
     |> Map.map (fun k v ->
         v 
         |> distinctPairs
-        |> Seq.collect
-            (function
-            | [| p1; p2 |] ->
-                antiNodes2 map p1 p2
-            | _ -> failwith "Unreachable")
+        |> Seq.collect (fun struct(p1, p2) -> antiNodes2 map p1 p2)
     )
     |> Seq.collect (fun (KeyValue(k, v)) -> v)
     |> Set

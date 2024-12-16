@@ -140,7 +140,7 @@ type Location =
 type Path =
     {
         Score: int64
-        Moves: Move list
+        // Moves: Move list
         Position: Point
         Direction: Direction
         History: Set<Location>
@@ -226,7 +226,7 @@ let tryForward (maze: Maze) (path: Path) =
             path with
                 Score = path.Score + Move.score Forward
                 Position = p1
-                Moves = Forward :: path.Moves
+                // Moves = Forward :: path.Moves
                 History = path.History.Add l
         }
 
@@ -238,7 +238,7 @@ let tryClockwise (maze: Maze) (path: Path) =
             { path with
                 Score = path.Score + Move.score Clockwise
                 Direction = l.Direction
-                Moves = Clockwise :: path.Moves
+                // Moves = Clockwise :: path.Moves
                 History = path.History.Add l
             }
         let p1 = forwardDir nextPath
@@ -254,7 +254,7 @@ let tryAnticlockwise (maze: Maze) (path: Path) =
             { path with
                 Score = path.Score + Move.score Anticlockwise
                 Direction = l.Direction
-                Moves = Anticlockwise :: path.Moves
+                // Moves = Anticlockwise :: path.Moves
                 History = path.History.Add l
             }
         let p1 = forwardDir nextPath
@@ -292,7 +292,7 @@ let findLowestScore (maze: Maze) =
             Score = 0L
             Position = maze.Start
             Direction = East
-            Moves = []
+            // Moves = []
             History = Set.singleton { Direction = East; Position = maze.Start }
         }
 
@@ -320,11 +320,11 @@ let findPointsOnBestPaths (maze: Maze) =
                 if bestScore = -1L then
                     // printfn $"Found best score {head.Score}"
                     let bestScore = head.Score
-                    let pointsOnBestPaths = head.History
+                    let pointsOnBestPaths = (head.History |> Set.map _.Position)
                     f maze allPaths pointsOnBestPaths bestScore
                 elif bestScore = head.Score then
                     // printfn $"Found alt path {head.Score}"
-                    let pointsOnBestPaths = Set.union pointsOnBestPaths head.History
+                    let pointsOnBestPaths = Set.union pointsOnBestPaths (head.History |> Set.map _.Position)
                     f maze allPaths pointsOnBestPaths bestScore
                 elif bestScore < head.Score then
                     // printfn $"Excluded {head.Score}"
@@ -343,7 +343,7 @@ let findPointsOnBestPaths (maze: Maze) =
             Score = 0L
             Position = maze.Start
             Direction = East
-            Moves = []
+            // Moves = []
             History = Set.singleton { Direction = East; Position = maze.Start }
         }
 
@@ -365,7 +365,6 @@ let part2 (input: string) =
 
     maze
     |> findPointsOnBestPaths
-    |> Set.map _.Position
     // |> (render maze)
     |> _.Count
     

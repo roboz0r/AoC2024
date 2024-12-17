@@ -168,7 +168,7 @@ let part1 (input: string) =
 let (reg1, result1) = part1 input
 #time
 
-let rec findQuine (expected: string) output p =
+let findQuines (expected: string) output p =
     let findPartial r = 
         seq {
             for i in 0L .. 7L do
@@ -192,8 +192,8 @@ let rec findQuine (expected: string) output p =
 let part2 (input: string) = 
     let x = InitialState.parse input
     let expected = String.Join(',', x.Program)
-    findQuine expected (Output()) x.Program
-    |> Seq.head 
+    findQuines expected (Output()) x.Program
+    |> Seq.head
 
 #time
 let result2 = part2 input

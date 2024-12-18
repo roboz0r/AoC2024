@@ -51,9 +51,6 @@ let sample = """5,4
 2,0
 """
 
-let sampleGrid = 6
-let inputGrid = 70
-
 type Input = Input of Point[]
 
 let parse (input: string) = 
@@ -121,17 +118,14 @@ type Direction =
     | Down
     | Left
 
-
-type Maze(input: string array) =
-    let width() = input[0].Length
-    let height() = input.Length
+type Maze(input: MemorySpace) =
 
     let rec findPoint f y x =
-        if f (input[y][x]) then 
-            { Y = y; X = x }
-        elif (x + 1) < width() then 
+        if f (input[x,y]) then 
+            { Y = y + 1; X = x + 1 }
+        elif (x + 1) < input.Width then 
             findPoint f y (x + 1)
-        elif (y + 1) < height() then
+        elif (y + 1) < input.Height then
             findPoint f (y + 1) 0
         else
             failwith "Not found"
@@ -142,78 +136,54 @@ type Maze(input: string array) =
     let endP = 
         findPoint ((=) End) 0 0 
 
-    member _.Item with get (x, y) = (input[y][x])
-    member _.Item with get (p:Point) = (input[p.Y][p.X])
+    let getPointOrWall x y =
+        if x <= 0 || y <= 0 || x > input.Width || y > input.Height then 
+            Wall
+        else
+            input[x - 1, y - 1]
 
-    member _.Width = input[0].Length
-    member _.Height = input.Length
+    member _.Item with get (x, y) = getPointOrWall x y
+    member _.Item with get (p:Point) = getPointOrWall p.X p.Y
+
+    member _.Width = input.Width + 2
+    member _.Height = input.Height + 2
 
     member this.Start = startP
 
     member this.End = endP
 
-    new(input: string) =
-        Maze(input.Split([| '\r'; '\n'|], StringSplitOptions.RemoveEmptyEntries))
 
-type Move =
-    | Forward
-    | Clockwise
-    | Anticlockwise
+let renderMaze = 
+    let renderBuffer = StringBuilder()
+    fun (working: Maze) ->
+        renderBuffer.Clear() |> ignore
+        for y in 0 .. (working.Height - 1) do
+            for x in 0 .. (working.Width - 1) do
+                renderBuffer.Append(working[x,y]) |> ignore
+            renderBuffer.AppendLine() |> ignore
 
-module Move = 
-    let score =
-        function
-        | Forward -> 1000L
-        | Clockwise
-        | Anticlockwise -> 1L
-
-    let clockwise = 
-        function
-        | Up -> Right
-        | Right -> Down
-        | Down -> Left
-        | Left -> Up
-
-    let antiClockwise = 
-        function
-        | Up -> Left
-        | Right -> Up
-        | Down -> Right
-        | Left -> Down
+        renderBuffer.ToString()
 
 type Location =
     {
         Position: Point
-        Direction: Direction
+        // Direction: Direction
     }
 
 type Path =
     {
         Score: int64
-        // Moves: Move list
         Position: Point
-        Direction: Direction
         History: Set<Location>
     }
-    member this.Location = { Position = this.Position; Direction = this.Direction }
+    member this.Location = { Position = this.Position }
 
 type Paths(start) = 
     let mutable map = Map.ofList [ start.Score, [start] ]
     let mutable shortestPaths = Map.ofList [ start.Location, start ]
 
-    // Take advantage of map head always being the lowest score
-    // let pop () = 
-    //     let (KeyValue(_, head)) = map |> Seq.head
-    //     match head with
-    //     | [] -> failwith "Paths contained empty list"
-    //     | [first] -> 
-    //         map <- map |> Map.remove first.Score
-    //         first
-    //     | first :: tail ->
-    //         map <- map |> Map.add first.Score tail
-    //         first
-
     let tryPop () = 
+        // Take advantage of map head always being the lowest score
         match map |> Seq.tryHead with
         | Some (KeyValue(_, head)) ->
             match head with
@@ -233,7 +203,7 @@ type Paths(start) =
                 shortestPaths <- shortestPaths |> Map.add path.Location path
                 Some path
             | Some p1 ->
-                if p1.Score < path.Score then 
+                if p1.Score <= path.Score then 
                     None
                 else
                     shortestPaths <- shortestPaths |> Map.add path.Location path
@@ -250,69 +220,35 @@ type Paths(start) =
                 map <- map |> Map.add path.Score [path]
         | None -> ()
 
-    
-    // member _.Pop() = pop()
     member _.TryPop() = tryPop()
     member _.Push(path) = push path
     member _.Push(paths) = paths |> Array.iter push
     member _.ShortestPaths = shortestPaths
     member _.CurrentPaths = map
 
-let forwardDir (path:Path) =
-    match path.Direction with
+let forwardDir move (path:Path) =
+    match move with
     | Up -> up path.Position
     | Right -> right path.Position
     | Down -> down path.Position
     | Left -> left path.Position
 
-let tryForward (maze: Maze) (path: Path) = 
-    let p1 = forwardDir path
-    let l = { Direction = path.Direction; Position = p1 }
+let tryMove move (maze: Maze) (path: Path) = 
+    let p1 = forwardDir move path
+    let l = { Position = p1 }
     match path.History.Contains(l), maze[p1] with
     | true, _
     | _, Wall -> None
     | _ -> 
         Some { 
             path with
-                Score = path.Score + Move.score Forward + (int64 (10 * ((maze.Width - p1.X) + (maze.Height - p1.Y))))
+                Score = path.Score + 1000L + (int64 (10 * ((maze.Width - p1.X) + (maze.Height - p1.Y))))
                 Position = p1
                 // Moves = Forward :: path.Moves
                 History = path.History.Add l
         }
 
-let tryClockwise (maze: Maze) (path: Path) = 
-    let l = { Direction = Move.clockwise path.Direction; Position = path.Position }
-    if path.History.Contains l then None
-    else
-        let nextPath =
-            { path with
-                Score = path.Score + Move.score Clockwise
-                Direction = l.Direction
-                // Moves = Clockwise :: path.Moves
-                History = path.History.Add l
-            }
-        let p1 = forwardDir nextPath
-        match maze[p1] with
-        | Wall -> None
-        | _ -> Some nextPath
-
-let tryAnticlockwise (maze: Maze) (path: Path) = 
-    let l = { Direction = Move.antiClockwise path.Direction; Position = path.Position }
-    if path.History.Contains l then None
-    else
-        let nextPath =
-            { path with
-                Score = path.Score + Move.score Anticlockwise
-                Direction = l.Direction
-                // Moves = Anticlockwise :: path.Moves
-                History = path.History.Add l
-            }
-        let p1 = forwardDir nextPath
-        match maze[p1] with
-        | Wall -> None
-        | _ -> Some nextPath
-
-let moves = [| tryForward; tryClockwise; tryAnticlockwise |]
+let moves = [| tryMove Up; tryMove Right; tryMove Down; tryMove Left; |]
 
 let rec advance (maze: Maze) (path: Path) = 
     let nextMoves =
@@ -331,7 +267,6 @@ let findLowestScore (maze: Maze) =
     let rec f (maze: Maze) (allPaths: Paths) =
         match allPaths.TryPop() with
         | Some head ->
-            // printfn $"{head.Score} {head.Direction} {head.Position.R}, {head.Position.C}"
             if maze.End = head.Position then Some head
             else
                 let newPaths = advance maze head
@@ -343,9 +278,7 @@ let findLowestScore (maze: Maze) =
         {
             Score = 0L
             Position = maze.Start
-            Direction = Right
-            // Moves = []
-            History = Set.singleton { Direction = Right; Position = maze.Start }
+            History = Set.singleton { Position = maze.Start }
         }
 
     let allPaths = Paths(start)
@@ -356,9 +289,8 @@ let part1 (input: string) (maxXY: int) numBytes =
     let memory = MemorySpace(maxXY)
     memory.DropBytes(points, numBytes)
     memory.DropStartEnd({X = 0; Y = 0}, {X = maxXY; Y = maxXY})
-    let mazeInput = render memory
-    printfn $"{mazeInput}"
-    mazeInput
+    // printfn $"{renderMaze (Maze memory)}"
+    memory
     |> Maze
     |> findLowestScore
     |> Option.map (fun path ->
@@ -367,12 +299,15 @@ let part1 (input: string) (maxXY: int) numBytes =
         |> fun s -> s.Count - 1
     )
 
-part1 sample 6 12
+let sampleGridXY, sampleNum = 6, 12
+let inputGridXY, inputNum = 70, 1024
+
+// part1 sample sampleGridXY sampleNum
 
 let input = File.ReadAllText(Path.Combine(__SOURCE_DIRECTORY__, "input.txt"))
 
 #time
-let result1 = part1 input 70 1024
+let result1 = part1 input inputGridXY inputNum
 #time
 
 let part2 (input: string) (maxXY: int) numBytes =
@@ -380,24 +315,23 @@ let part2 (input: string) (maxXY: int) numBytes =
     let memory = MemorySpace(maxXY)
     memory.DropBytes(points, numBytes)
     memory.DropStartEnd({X = 0; Y = 0}, {X = maxXY; Y = maxXY})
+    let maze = (Maze memory)
     let (Input points) = points
     let rec f i = 
         let p = points[i]
         memory[p] <- Wall
-        let mazeInput = render memory
-        // printfn $"{points[i]}\n{mazeInput}"
-        match findLowestScore (Maze mazeInput) with
+        match findLowestScore maze with
         | Some _ -> 
-            printfn $"{i}"
+            // printfn $"{i}"
             f (i + 1)
         | None -> $"{p.X},{p.Y}"
 
     f numBytes
 
-// part2 sample 6 12
+// part2 sample sampleGridXY sampleNum
 
 
 #time
-let result2 = part2 input 70 1024
+let result2 = part2 input inputGridXY inputNum
 #time
 printfn $"Part1: {result1} Part2: {result2}"

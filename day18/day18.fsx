@@ -167,7 +167,6 @@ let renderMaze =
 type Location =
     {
         Position: Point
-        // Direction: Direction
     }
 
 type Path =
@@ -178,53 +177,72 @@ type Path =
     }
     member this.Location = { Position = this.Position }
 
+open System.Collections.Generic
+
 type Paths(start) = 
-    let mutable map = Map.ofList [ start.Score, [start] ]
-    let mutable shortestPaths = Map.ofList [ start.Location, start ]
+    let pathsByScore = Dictionary()
+    let shortestPaths = Dictionary()
+    do
+        pathsByScore.Add(start.Score, [start])
+        shortestPaths.Add(start.Location, start)
+
+    let getMinScore () =
+        if pathsByScore.Count = 0 then None
+        else
+            pathsByScore
+            |> Seq.map (fun (KeyValue(score, _)) -> score)
+            |> Seq.min 
+            |> Some
+
+    let mutable minScore = Some start.Score
 
     let tryPop () = 
-        // Take advantage of map head always being the lowest score
-        match map |> Seq.tryHead with
-        | Some (KeyValue(_, head)) ->
+        match minScore |> Option.map (fun score -> score, pathsByScore[score]) with
+        | Some (score, head) ->
             match head with
             | [] -> failwith "Paths contained empty list"
             | [first] -> 
-                map <- map |> Map.remove first.Score
+                pathsByScore.Remove(score) |> ignore
+                minScore <- getMinScore()
                 Some first
             | first :: tail ->
-                map <- map |> Map.add first.Score tail
+                pathsByScore[score] <- tail
                 Some first
         | None -> None
 
     let push (path: Path) =
         let maybePath =
-            match path.Location |> shortestPaths.TryFind with
-            | None -> 
-                shortestPaths <- shortestPaths |> Map.add path.Location path
+            match shortestPaths.TryGetValue( path.Location) with
+            | false, _ -> 
+                shortestPaths[path.Location] <- path
                 Some path
-            | Some p1 ->
+            | true, p1 ->
                 if p1.Score <= path.Score then 
                     None
                 else
-                    shortestPaths <- shortestPaths |> Map.add path.Location path
+                    shortestPaths[path.Location] <- path
                     Some path
 
         match maybePath with
         | Some path ->
-            match map |> Map.tryFind path.Score with
-            | Some paths ->
+            match pathsByScore.TryGetValue(path.Score) with
+            | true, paths ->
                 let newPaths = 
                     path :: paths
-                map <- map |> Map.add path.Score newPaths
-            | None -> 
-                map <- map |> Map.add path.Score [path]
+                pathsByScore[path.Score] <- newPaths
+            | false, _ -> 
+                minScore <- 
+                    match minScore with
+                    | None -> Some path.Score
+                    | Some minScore -> Some (min minScore path.Score)
+                pathsByScore[path.Score] <- [path]
         | None -> ()
 
     member _.TryPop() = tryPop()
     member _.Push(path) = push path
     member _.Push(paths) = paths |> Array.iter push
     member _.ShortestPaths = shortestPaths
-    member _.CurrentPaths = map
+    member _.CurrentPaths = pathsByScore
 
 let forwardDir move (path:Path) =
     match move with

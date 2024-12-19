@@ -106,28 +106,24 @@ let countPossibilities towels (cache: Dictionary<CacheKey, int64>) (design: Desi
             match cache.TryGetValue(key) with
             | true, count -> count
             | false, _ ->
-                towels
-                |> Array.sumBy (fun t ->
-                    match fitsDesign design start t with
-                    | ValueSome (_, next) ->
-                        let count = f next
-
-                        match cache.TryGetValue(key) with
-                        | false, _ -> cache[key] <- count
-                        | true, prev -> cache[key] <- count + prev
-
-                        count
-                    | ValueNone -> 0L
-                )
+                let count =
+                    towels
+                    |> Array.sumBy (fun t ->
+                        match fitsDesign design start t with
+                        | ValueSome (_, next) -> f next
+                        | ValueNone -> 0L
+                    )
+                cache[key] <- count
+                count
 
     f 0
 
 let part2 input =
     let (towels, designs) = parse input
-    designs
-    |> Array.sumBy (countPossibilities towels (Dictionary()))
+    let arr = designs |> Array.map (countPossibilities towels (Dictionary()))
+    arr |> Array.sumBy (fun x -> if x > 0L then 1L else 0L), arr |> Array.sum
 
 #time
-let result2 = part2 input
+let (result1_2, result2) = part2 input
 #time
-printfn $"Part1: {result1} Part2: {result2}"
+printfn $"Part1: {result1} or {result1_2} Part2: {result2}"

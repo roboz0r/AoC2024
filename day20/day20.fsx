@@ -267,7 +267,7 @@ let part1 input atLeast =
 let input = File.ReadAllText(Path.Combine(__SOURCE_DIRECTORY__, "input.txt"))
 
 #time
-part1 input 100
+let result1 = part1 input 100
 #time
 
 let possibleCheatsI maxDist =
@@ -311,19 +311,17 @@ let pointsFromEnd (maze: Maze) atLeast iEnd =
                         { X = x; Y = y }
     }
 
-let part2 input atLeast = 
+let part2 input atLeast maxDist = 
     let parsed = parse input
     let maze = fillInput parsed
     let trackPoints = pointsFromEnd maze atLeast (maze[maze.End])
     // renderToConsole parsed
     // trackPoints |> Array.ofSeq |> Array.sortBy (fun p -> maze[p])
-    let possibleCheats = possibleCheatsI 20
+    let possibleCheats = possibleCheatsI maxDist
     trackPoints
     |> Seq.collect (fun pStart ->
         possibleCheats
-        |> Array.choose (fun x ->
-            tryCheat2 maze atLeast pStart x
-        )
+        |> Array.choose (tryCheat2 maze atLeast pStart)
     )
     |> Seq.length
     // |> Seq.countBy snd
@@ -333,5 +331,6 @@ let part2 input atLeast =
 // part2 sample 50
 
 #time
-part2 input 100
+let result1_2, result2 = part2 input 100 2, part2 input 100 20
 #time
+printfn $"Part1: {result1} or {result1_2} Part2: {result2}"

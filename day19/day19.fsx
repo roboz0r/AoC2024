@@ -120,7 +120,8 @@ let countPossibilities towels (cache: Dictionary<CacheKey, int64>) (design: Desi
 
 let part2 input =
     let (towels, designs) = parse input
-    let arr = designs |> Array.map (countPossibilities towels (Dictionary()))
+    let d = Dictionary()
+    let arr = designs |> Array.map (countPossibilities towels d)
     arr |> Array.sumBy (fun x -> if x > 0L then 1L else 0L), arr |> Array.sum
 
 #time

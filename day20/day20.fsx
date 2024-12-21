@@ -271,37 +271,30 @@ let result1 = part1 input 100
 #time
 
 let possibleCheatsI maxDist =
-    let dist x y = (abs x) + (abs y)
     [|
-        for y in -maxDist .. maxDist do
-            for x in -maxDist .. maxDist do
-                let dist = dist x y
-                if dist > 0 && dist <= maxDist then 
-                    struct (x, y, dist)
+        for dy in -maxDist .. maxDist do      
+            let x = maxDist - abs dy
+            for dx in -x .. x do
+                struct (dx, dy)
     |]
 
-let tryCheat2 (maze: Maze) atLeast (pStart) (struct (x, y, dist)) = 
-    let pEnd = { X = pStart.X + x; Y = pStart.Y + y }
+let dist x y = (abs x) + (abs y)
+let tryCheat2 (maze: Maze) atLeast (pStart) (struct (dx, dy)) = 
+    let pEnd = { X = pStart.X + dx; Y = pStart.Y + dy }
 
     match maze[pStart], maze[pEnd] with
     | Wall, _
-    | _, Wall -> None
-    | Empty, _
-    | _, Empty
-    | End, _
-    | _, End -> 
-        renderToConsole maze.Input
-        failwith $"Unexpected unpopulated maze {pStart.X}, {pStart.Y}:{maze[pStart]}, {pEnd.X}, {pEnd.Y}:{maze[pEnd]}"
+    | _, Wall -> 0
     | iStart, iEnd ->
-        let v = iEnd - iStart - dist
+        let v = iEnd - iStart - (dist dx dy)
         if v >= atLeast then 
-            Some (pStart, v)
+            1
         else
-            None
+            0
 
 let pointsFromEnd (maze: Maze) atLeast iEnd = 
-    seq {
-        // -2 as we can't cheat through the outer wall
+    [|
+        // -2 as no track on outer wall
         for y in 1 .. (maze.Height - 2) do
             for x in 1 .. (maze.Width - 2) do
                 match maze[x, y] with
@@ -309,24 +302,18 @@ let pointsFromEnd (maze: Maze) atLeast iEnd =
                 | i ->
                     if i < (iEnd - atLeast) then 
                         { X = x; Y = y }
-    }
+    |]
 
 let part2 input atLeast maxDist = 
     let parsed = parse input
     let maze = fillInput parsed
     let trackPoints = pointsFromEnd maze atLeast (maze[maze.End])
-    // renderToConsole parsed
-    // trackPoints |> Array.ofSeq |> Array.sortBy (fun p -> maze[p])
     let possibleCheats = possibleCheatsI maxDist
     trackPoints
-    |> Seq.collect (fun pStart ->
+    |> Array.Parallel.sumBy  (fun pStart ->
         possibleCheats
-        |> Array.choose (tryCheat2 maze atLeast pStart)
+        |> Array.sumBy (tryCheat2 maze atLeast pStart)
     )
-    |> Seq.length
-    // |> Seq.countBy snd
-    // |> List.ofSeq
-    // |> List.sortBy fst 
 
 // part2 sample 50
 

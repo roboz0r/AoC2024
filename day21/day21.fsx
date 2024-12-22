@@ -205,12 +205,6 @@ let moves (moveMap: Map<Move, string>) start (required: string) =
     required
     |> moveSeq start
     |> Seq.map (fun m -> moveMap[m])
-    // |> Seq.map (fun m ->
-    //     match moveMap |> Map.tryFind m with
-    //     | Some x -> 
-    //         // printfn $"{m}: {x}"
-    //         x
-    //     | None -> failwith $"No such move {m}" )
     |> String.concat ""
 
 [<Literal>]
@@ -310,7 +304,7 @@ let testNumpadMoves () =
     )
 
     for (KeyValue(move, action)) in numpadMoveMap do
-        printfn $"Testing {move} {action}"
+        // printfn $"Testing {move} {action}"
         let robot = testRobot move action
         for c in action do
             robot.Do c
@@ -323,12 +317,12 @@ let testDirpadMoves () =
     )
 
     for (KeyValue(move, action)) in dirpadMoveMap do
-        printfn $"Testing {move} {action}"
+        // printfn $"Testing {move} {action}"
         let robot = testRobot move action
         for c in action do
             robot.Do c
 
-// testNumpadMoves () 
+testNumpadMoves () 
 testDirpadMoves ()
 
 let initial = Activate
@@ -336,19 +330,12 @@ let initial = Activate
 let getNumpadMoves = moves numpadMoveMap initial
 let getDirpadMoves = moves dirpadMoveMap initial
 
-// let moveSet code =
-//     getNumpadMoves code
-//     |> getDirpadMoves
-//     |> getDirpadMoves
-//     // |> getDirpadMoves
-
 let moveSetN n code =
     let rec f i moveSet = 
         if i = 0 then moveSet
         else
             f (i - 1) (getDirpadMoves moveSet)
     f n (getNumpadMoves code)
-
 
 let testMoveSet (code: string) (moveSet: string) =
 
@@ -364,8 +351,6 @@ let testMoveSet (code: string) (moveSet: string) =
 
 let complexity (code: string) (moveSet: string) =
     let codeNum = int (code.TrimEnd('A'))
-    // printfn $"{code}: {moveSet}"
-    // printfn $"{code}: {moveSet.Length} * {codeNum}"
     int64 moveSet.Length * int64 codeNum
 
 let part1 (input: string) =
@@ -385,144 +370,6 @@ let input = File.ReadAllText(Path.Combine(__SOURCE_DIRECTORY__, "input.txt"))
 //94426
 let result1 = part1 input
 #time
-
-// printfn $"Part1: {result1}"
-// printfn "---------------------"
-// printfn "%s" (moveSetN 0 "4")
-// printfn "%s" (moveSetN 1 "4")
-// printfn "%s" (moveSetN 2 "4")
-// printfn "%s" (moveSetN 3 "4")
-// printfn "%s" (moveSetN 4 "4")
-// printfn "%s" (moveSetN 5 "4")
-// printfn "%s" (moveSetN 6 "4")
-// printfn "%s" (moveSetN 7 "4")
-
-// let sets code = 
-//     let rec f maps i max = 
-//         if i = max then maps
-//         else 
-//             let map = 
-//                 moveSetN i code
-//                 |> moveSeq initial
-//                 |> Seq.countBy id
-//                 |> Seq.map (fun (m, i) -> (m, int64 i) )
-//                 |> Map
-
-//             let maps =
-//                 maps
-//                 |> Map.map (fun move xs ->
-//                     match map |> Map.tryFind move with
-//                     | Some x -> x :: xs
-//                     | None -> 0 :: xs
-//                 )
-
-//             f maps (i + 1) max
-
-//     let maps = 
-//         dirpadMoveMap
-//         |> Map.map (fun move _ -> [])
-
-//     f maps 0 3
-
-// let x = sets "463A"
-// x |> Map.iter (fun move seq ->
-//     printfn "%A: %A" move seq
-// )
-
-// let step (moveCounts: Map<Move, int64 list>) =
-//     let emptyMoveMap = 
-//         dirpadMoveMap
-//         |> Map.map (fun move _ -> 0L)
-
-//     let addOneMove (acc: Map<Move, int64>) move prev = 
-//         let action = dirpadMoveMap[move]
-//         let actionMoves = 
-//             if  action.Length = 1 then seq { Move(action[0], 'A') }
-//             else moveSeq (action[0]) (action[1..] + "A")
-//         (acc, actionMoves)
-//         ||> Seq.fold (fun acc move ->
-//             acc |> Map.add move (acc[move] + 1L)
-//         )
-//         |> Map.map (fun move count -> prev * count)
-    
-//     let nextCountsByPrevMove =
-//         moveCounts
-//         |> Map.map (fun move counts ->
-//             match counts with
-//             | prev :: _ -> 
-//                 addOneMove emptyMoveMap move prev
-//             | _ -> failwith "No empty lists"
-//         )
-
-//     let nextCounts = 
-//         emptyMoveMap
-//         |> Map.map (fun move _ ->
-//             nextCountsByPrevMove
-//             |> Map.values
-//             |> Seq.sumBy (fun x -> x[move])
-//         )
-
-//     moveCounts
-//     |> Map.map (fun move counts ->
-//         nextCounts[move] :: counts
-//     )
-    
-// sets "463A"
-// |> (fun moveCounts ->   
-//     moveCounts |> Map.iter (printfn "%A: %A")
-//     step moveCounts
-// )
-// |> (fun moveCounts ->   
-//     moveCounts |> Map.iter (printfn "%A: %A")
-//     step moveCounts
-// )
-// |> (fun moveCounts ->   
-//     moveCounts |> Map.iter (printfn "%A: %A")
-//     step moveCounts
-// )
-
-// Move ('<', '<'): [44; 14; 7; 3; 0; 1]
-// Move ('<', '>'): [0; 0; 0; 0; 0; 0]
-// Move ('<', 'A'): [68; 27; 10; 5; 2; 1]
-// Move ('<', '^'): [32; 13; 5; 3; 0; 0]
-// Move ('<', 'v'): [37; 18; 6; 2; 2; 0]
-// Move ('>', '<'): [0; 0; 0; 0; 0; 0]
-// Move ('>', '>'): [27; 10; 5; 2; 1; 1]
-// Move ('>', 'A'): [73; 30; 10; 6; 0; 1]
-// Move ('>', '^'): [81; 32; 13; 5; 3; 0]
-// Move ('>', 'v'): [0; 0; 0; 0; 0; 0]
-// Move ('A', '<'): [93; 44; 14; 7; 3; 0]
-// Move ('A', '>'): [154; 62; 23; 11; 3; 1]
-// Move ('A', 'A'): [45; 21; 9; 4; 3; 0]
-// Move ('A', '^'): [30; 10; 6; 0; 1; 1]
-// Move ('A', 'v'): [106; 37; 18; 6; 2; 2]
-// Move ('^', '<'): [0; 0; 0; 0; 0; 1]
-// Move ('^', '>'): [0; 0; 0; 0; 0; 0]
-// Move ('^', 'A'): [143; 55; 24; 8; 4; 0]
-// Move ('^', '^'): [0; 0; 0; 0; 0; 1]
-// Move ('^', 'v'): [0; 0; 0; 0; 0; 0]
-// Move ('v', '<'): [44; 14; 7; 3; 1; 0]
-// Move ('v', '>'): [0; 0; 0; 0; 0; 0]
-// Move ('v', 'A'): [99; 41; 17; 5; 3; 2]
-// Move ('v', '^'): [0; 0; 0; 0; 0; 0]
-// Move ('v', 'v'): [0; 0; 0; 0; 0; 0]
-
-// ^^<<A>>AvAvA
-// <AAv<AA>>^AvAA^A<vA>^A<vA>^A
-// v<<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^AA<A>Av<<A>A>^AvA<^A>Av<<A>A>^AvA<^A>A
-// <vA<AA>>^AvAA<^A>AAv<<A>A>^Av<<A>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AAv<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A
-// v<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AA<vA<AA>>^AvAA<^A>A<vA>^A<A>Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A
-// <vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A
-// v<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A
-
-// ^^<<A
-// <AAv<AA>>^A
-// v<<A>>^AA<vA<A>>^AAvAA<^A>A
-// <vA<AA>>^AvAA<^A>AAv<<A>A>^Av<<A>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^A
-// v<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A
-// <vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A
-// v<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A
-// <vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^A
 
 let decompose (s: string) = 
     let rec nextSingleA i =
@@ -547,123 +394,42 @@ let decompose (s: string) =
     f 0
     |> Seq.countBy id
     |> Seq.map (fun (s, i) -> (s, int64 i))
-    |> Map.ofSeq
+    |> Array.ofSeq
 
-// decompose "<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>AA<vA<AA>>^AvA^AvA<^A>A<vA<AA>>^AvAA<^A>AA<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^AAv<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^AAv<<A>A>^AvA<^A>AA<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^Av<<A>^A>AvA^A<vA>^A<A>Av<<A>A>^AvA<^A>Av<<A>>^AvA^A<vA<AA>>^AvA^AvA<^A>A<vA>^Av<<A>^A>AvA^A<vA<AA>>^AvAA<^A>A<vA>^A<A>Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^Av<<A>^A>AvA^Av<<A>A>^AvA<^A>A<vA<AA>>^AvA<^A>AvA^A<vA>^A<A>Av<<A>A>^Av<<A>>^AAvAA<^A>A<vA>^AAv<<A>^A>AvA^Av<<A>A>^AvA<^A>Av<<A>>^AvA^A"
-// |> Map.iter (printfn "%A: %i")
-
-// let motifs =
-//     [|
-//         "<A"
-//         "<AA>>^A"
-//         "<^A"
-//         "<vA"
-//         ">>^A"
-//         ">>^AAvAA<^A"
-//         ">A"
-//         ">AA<vA"
-//         ">AAv<<A"
-//         ">^A"
-//         ">^AAv<<A"
-//         "^A"
-//         "^AAv<<A"
-//         "v<<A"
-//         "vA"
-//         "vAA<^A"
-//     |]
-
-// let emptyMotifMap = 
-//     motifs
-//     |> Array.map (fun x -> x, 0L)
-//     |> Map
-
-open System.Collections.Generic
-
-let memo (dict: Dictionary<_,_>) k f =
-    match dict.TryGetValue k with
-    | true, v -> v
-    | false, _ ->
-        let v = f k
-        dict[k] <- v
-        v
-
-let nextOne motif prev = 
+let nextOne (motif, prev) = 
     getDirpadMoves motif
     |> decompose
-    |> Map.map (fun _ count -> prev * count)
+    |> Array.map (fun (s, count) -> s, prev * count)
 
-let step (motifCounts: Map<string, int64>) =
+let step (motifCounts: array<string * int64>) =
     motifCounts
-    |> Map.map nextOne
-    |> Map.values
-    |> Seq.collect (fun map ->
-        map
-        |> Seq.map (fun (KeyValue(k, v)) -> (k, v))
-    )
+    |> Array.map nextOne
+    |> Seq.concat
     |> Seq.groupBy fst
     |> Seq.map (fun (k, vs) ->
         let v = vs |> Seq.sumBy snd
         (k, v)
     )
-    |> Map
-
-// let runN n (input: string) = 
-//     let initialDecomp = decompose (getNumpadMoves input)
-
-//     let f i decomp =
-//         if i = n then decomp
-//         else
-//             f (i + 1) (step decomp)
-
-//     initialDecomp
-//     |> step
-//     |> step
+    |> Array.ofSeq
 
 let runN n (input: string) = 
-    let initialDecomp = decompose (getNumpadMoves input)
-
     let rec f i decomp =
         if i = n then decomp
         else
             f (i + 1) (step decomp)
 
+    let initialDecomp = decompose (getNumpadMoves input)
     f 0 initialDecomp
 
-
-// let sample  = 
-//     """029A
-// 980A
-// 179A
-// 456A
-// 379A
-// """
-// 463A
-// 340A
-// 129A
-// 083A
-// 341A
-
-// let m1 = decompose ("341A" |> getNumpadMoves |> getDirpadMoves |> getDirpadMoves |> getDirpadMoves)
-// let m2 = runN 3 "341A"
-
-// m1 = m2
-
-
-let complexity2 (code: string) (moveSet: Map<string, int64>) =
-    let codeNum = int (code.TrimEnd('A'))
-    // printfn $"{code}: {moveSet}"
-    // printfn $"{code}: {moveSet.Length} * {codeNum}"
+let complexity2 (code: string) (moveSet: array<string * int64>) =
+    let codeNum = int64 (code.TrimEnd('A'))
     let value = 
         moveSet 
-        |> Seq.sumBy (fun (KeyValue(s, count)) ->
-            (int64 s.Length) * count
-        )
-    value * int64 codeNum
+        |> Seq.sumBy (fun (s, count) -> (int64 s.Length) * count)
+    value * codeNum
 
-
-let part2 (input: string) =
-    let decompCounts code = runN 25 code
-
+let part2 n (input: string) =
+    let decompCounts code = runN n code
     let codes = input.Split([|'\r';'\n'|], StringSplitOptions.RemoveEmptyEntries)
     codes
     |> Array.sumBy (fun code ->
@@ -672,9 +438,8 @@ let part2 (input: string) =
     )
 
 #time
-//178023611514396
-//135019550868544
-let result2 = part2 input
+//118392478819140
+let result1_2, result2 = part2 2 input, part2 25 input
 #time
 
-printfn $"Part1: {result1} Part2: {result2}"
+printfn $"Part1: {result1} or {result1_2} Part2: {result2}"

@@ -208,13 +208,28 @@ let rec bronKerbosch getNeighbours r p x  =
                 x2 <- x2 |> Set.add v
     }
 
+let bronKerbosch2 getNeighbours vertices =
+    let rec f getNeighbours r p x  =
+        if Set.isEmpty p && Set.isEmpty x then 
+            Seq.singleton r // Report Maximal Clique
+        else
+            ((p, x, Seq.empty), p)
+            ||> Seq.fold (fun (p, x, acc) v ->
+                let neighbours = getNeighbours v
+                let acc = Seq.concat [| acc; (f getNeighbours (r |> Set.add v) (Set.intersect p neighbours) (Set.intersect x neighbours)) |]
+                (p |> Set.remove v, x |> Set.add v, acc)
+            )
+            |> fun (_, _, acc) -> acc
+            
+    f getNeighbours Set.empty vertices Set.empty
+
 let part2 input = 
     let inputIndex = 
         input
         |> parse
         |> index
     let vertices = inputIndex.Keys |> Set
-    bronKerbosch (getNeighbours inputIndex) Set.empty vertices Set.empty
+    bronKerbosch2 (getNeighbours inputIndex) vertices
     |> Seq.maxBy _.Count
     |> (fun longestSet -> String.Join(',', longestSet))
 
